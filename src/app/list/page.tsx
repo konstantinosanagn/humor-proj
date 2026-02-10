@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
+import { getSupabase } from "@/lib/supabase";
 
 type CaptionRow = Record<string, unknown>;
 
@@ -75,7 +75,7 @@ export default function ListPage() {
     async function discoverTables() {
       const found: { name: string; rowCount: number }[] = [];
       for (const table of TABLE_NAMES_TO_TRY) {
-        const { count, error: e } = await supabase
+        const { count, error: e } = await getSupabase()
           .from(table)
           .select("*", { count: "exact", head: true });
         if (!e) {
@@ -95,7 +95,7 @@ export default function ListPage() {
     setError(null);
 
     async function fetchTable() {
-      const { count, error: countErr } = await supabase
+      const { count, error: countErr } = await getSupabase()
         .from(selectedTable)
         .select("*", { count: "exact", head: true });
 
@@ -106,7 +106,7 @@ export default function ListPage() {
       }
       setTotalCount(count ?? 0);
 
-      const { data: rows, error: err } = await supabase
+      const { data: rows, error: err } = await getSupabase()
         .from(selectedTable)
         .select("*");
 
