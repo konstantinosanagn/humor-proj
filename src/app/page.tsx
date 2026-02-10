@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Inter } from "next/font/google";
 import { useState, useCallback } from "react";
 import { MEMES_DB } from "./data/memes";
@@ -77,7 +78,11 @@ export default function Home() {
       <div className="grid grid-cols-[5rem_2fr_3fr_5rem] grid-rows-[5rem_1fr_5rem] min-h-screen">
         {/* Row 0 – navbar */}
         <Cell className="border-r-0" />
-        <Cell className="col-span-2 border-r-0 border-l-0" />
+        <Cell className="col-span-2 border-r-0 border-l-0 flex items-center px-4">
+          <Link href="/list" className="text-gray-600 hover:text-gray-900 font-medium">
+            Captions from Supabase
+          </Link>
+        </Cell>
         <Cell className="border-l-0" />
 
         {/* Row 1 – content: col 2 = meme, col 3 = captions */}
