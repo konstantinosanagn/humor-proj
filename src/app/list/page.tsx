@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/client";
 
 type CaptionRow = Record<string, unknown>;
 
@@ -70,6 +71,12 @@ export default function ListPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [foundTables, setFoundTables] = useState<{ name: string; rowCount: number }[]>([]);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = "/";
+  };
 
   useEffect(() => {
     async function discoverTables() {
@@ -142,9 +149,17 @@ export default function ListPage() {
 
   return (
     <div className="min-h-screen bg-white p-8">
-      <Link href="/" className="inline-block text-gray-500 hover:text-gray-700 mb-4 font-medium">
-        ← Back to meme viewer
-      </Link>
+      <div className="flex items-center justify-between mb-4">
+        <Link href="/" className="text-gray-500 hover:text-gray-700 font-medium">
+          ← Back to meme viewer
+        </Link>
+        <button
+          onClick={handleSignOut}
+          className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors cursor-pointer"
+        >
+          Sign out
+        </button>
+      </div>
       <h1 className="text-3xl font-bold mb-2 text-gray-900">Crackd data</h1>
       <p className="text-gray-500 mb-6">
         Table <span className="font-mono text-gray-700">{selectedTable}</span>:{" "}
