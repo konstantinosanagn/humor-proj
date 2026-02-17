@@ -32,51 +32,40 @@ export default function Home() {
   const isLastCaption = activeCaptionIndex === captions.length - 1;
   const isLastMeme = activeMemeIndex === MEMES_DB.length - 1;
 
-  // Handle like/dislike button click
-  const handleVote = useCallback((vote: "like" | "dislike") => {
+  const handleVote = useCallback((_vote: "like" | "dislike") => {
     if (isNavigatingRef.current) return;
-    
-    // TODO: You can store the vote here if needed
-    console.log(`Caption "${currentCaption}" received: ${vote}`);
-    
-    if (isLastCaption) {
-      // Last caption of current meme - transition to next meme
-      if (!isLastMeme) {
-        isNavigatingRef.current = true;
-        
-        // Step 1: Hide captions (clear column 3)
-        setCaptionsVisible(false);
-        
-        // Step 2: After captions fade out, start image transition
-        setTimeout(() => {
-          setPrevMemeIndex(activeMemeIndex);
-          setActiveMemeIndex(activeMemeIndex + 1);
-          setActiveCaptionIndex(0);
-          setIsTransitioning(true);
-          
-          // Step 3: Show new captions after image starts transitioning
-          setTimeout(() => {
-            setCaptionsVisible(true);
-          }, 200);
-        }, 250);
-        
-        setTimeout(() => {
-          setPrevMemeIndex(null);
-          setIsTransitioning(false);
-          isNavigatingRef.current = false;
-        }, 900);
-      }
-    } else {
-      // Not last caption - go to next caption
+
+    if (!isLastCaption) {
       setActiveCaptionIndex(activeCaptionIndex + 1);
+      return;
     }
-  }, [activeMemeIndex, activeCaptionIndex, currentCaption, isLastCaption, isLastMeme]);
+
+    if (isLastMeme) return;
+
+    isNavigatingRef.current = true;
+    setCaptionsVisible(false);
+
+    setTimeout(() => {
+      setPrevMemeIndex(activeMemeIndex);
+      setActiveMemeIndex(activeMemeIndex + 1);
+      setActiveCaptionIndex(0);
+      setIsTransitioning(true);
+      setTimeout(() => setCaptionsVisible(true), 200);
+    }, 250);
+
+    setTimeout(() => {
+      setPrevMemeIndex(null);
+      setIsTransitioning(false);
+      isNavigatingRef.current = false;
+    }, 900);
+  }, [activeMemeIndex, activeCaptionIndex, isLastCaption, isLastMeme]);
+
+  const captionOpacity = captionsVisible ? "opacity-100" : "opacity-0";
+  const imageAnimation = isTransitioning ? "animate-slideIn" : "";
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Row 1: navbar | Row 2: content | Row 3: footer. Cols: filler | 2/5 | 3/5 | filler */}
       <div className="grid grid-cols-[5rem_2fr_3fr_5rem] grid-rows-[5rem_1fr_5rem] min-h-screen">
-        {/* Row 0 – navbar */}
         <Cell className="border-r-0" />
         <Cell className="col-span-2 border-r-0 border-l-0 flex items-center px-4">
           <Link href="/list" className="text-gray-600 hover:text-gray-900 font-medium">
@@ -85,12 +74,9 @@ export default function Home() {
         </Cell>
         <Cell className="border-l-0" />
 
-        {/* Row 1 – content: col 2 = meme, col 3 = captions */}
         <Cell />
         <Cell className="flex items-center justify-center overflow-hidden p-4">
-          {/* Fixed-size image container */}
           <div className="relative w-[450px] h-[450px] flex items-center justify-center overflow-hidden">
-            {/* Exiting image (slides up) */}
             {prevMemeIndex !== null && (
               <Image
                 key={`exit-${prevMemeIndex}`}
@@ -101,31 +87,26 @@ export default function Home() {
                 unoptimized
               />
             )}
-            {/* Entering image (slides up from bottom) */}
             <Image
               key={`enter-${activeMemeIndex}`}
               src={activeMeme.imageUrl}
               alt="Meme"
               fill
-              className={`object-contain ${isTransitioning ? "animate-slideIn" : ""}`}
+              className={`object-contain ${imageAnimation}`}
               unoptimized
             />
           </div>
         </Cell>
         <Cell className={`overflow-hidden p-0 flex flex-col ${inter.className}`}>
           <div
-            className={`flex-1 flex flex-col items-center justify-center text-center px-4 transition-opacity duration-200 ${
-              captionsVisible ? "opacity-100" : "opacity-0"
-            }`}
+            className={`flex-1 flex flex-col items-center justify-center text-center px-4 transition-opacity duration-200 ${captionOpacity}`}
           >
-            {/* Current caption in container */}
             <div className="max-w-[400px] w-full px-6 mb-8">
               <p className="text-3xl font-medium text-black leading-relaxed">
                 {currentCaption}
               </p>
             </div>
-            
-            {/* Heart and Dislike buttons */}
+
             <div className="flex gap-8">
               <button
                 onClick={() => handleVote("like")}
@@ -165,8 +146,7 @@ export default function Home() {
                 </svg>
               </button>
             </div>
-            
-            {/* Caption progress indicator */}
+
             <div className="mt-6 text-sm text-gray-400">
               {activeCaptionIndex + 1} / {captions.length}
             </div>
@@ -174,7 +154,6 @@ export default function Home() {
         </Cell>
         <Cell />
 
-        {/* Row 2 – footer */}
         <Cell className="border-r-0" />
         <Cell className="col-span-2 border-r-0 border-l-0" />
         <Cell className="border-l-0" />
