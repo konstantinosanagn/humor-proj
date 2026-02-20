@@ -3,10 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Inter } from "next/font/google";
-import { useState, useCallback } from "react";
-import { MEMES_DB } from "./data/memes";
+import { useState, useCallback, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 const inter = Inter({ subsets: ["latin"] });
+
+type Caption = { id: string; content: string };
+type MemeEntry = { id: string; url: string; captions: Caption[] };
 
 function Cell({
   className = "",
@@ -19,46 +22,96 @@ function Cell({
 }
 
 export default function Home() {
+  const [memes, setMemes] = useState<MemeEntry[]>([]);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
   const [activeMemeIndex, setActiveMemeIndex] = useState(0);
   const [prevMemeIndex, setPrevMemeIndex] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [activeCaptionIndex, setActiveCaptionIndex] = useState(0);
   const [captionsVisible, setCaptionsVisible] = useState(true);
-  const isNavigatingRef = { current: false };
 
-  const activeMeme = MEMES_DB[activeMemeIndex];
-  const captions = activeMeme.captions;
+  useEffect(() => {
+    async function load() {
+      const supabase = createClient();
+
+      const [{ data: { user } }, { data: images }] = await Promise.all([
+        supabase.auth.getUser(),
+        supabase
+          .from("images")
+          .select("id, url, captions(id, content)")
+          .eq("is_public", true),
+      ]);
+
+      setUserId(user?.id ?? null);
+
+      const valid = (images ?? []).filter(
+        (img): img is MemeEntry =>
+          Array.isArray(img.captions) && img.captions.length > 0
+      );
+      setMemes(valid);
+      setLoading(false);
+    }
+    load();
+  }, []);
+
+  const activeMeme = memes[activeMemeIndex];
+  const captions = activeMeme?.captions ?? [];
   const currentCaption = captions[activeCaptionIndex];
   const isLastCaption = activeCaptionIndex === captions.length - 1;
-  const isLastMeme = activeMemeIndex === MEMES_DB.length - 1;
+  const isLastMeme = activeMemeIndex === memes.length - 1;
 
-  const handleVote = useCallback((_vote: "like" | "dislike") => {
-    if (isNavigatingRef.current) return;
+  const handleVote = useCallback(
+    async (vote: "like" | "dislike") => {
+      if (!activeMeme || !currentCaption) return;
 
-    if (!isLastCaption) {
-      setActiveCaptionIndex(activeCaptionIndex + 1);
-      return;
-    }
+      if (userId) {
+        const supabase = createClient();
+        await supabase.from("caption_votes").insert({
+          caption_id: currentCaption.id,
+          profile_id: userId,
+          vote_value: vote === "like" ? 1 : -1,
+        });
+      }
 
-    if (isLastMeme) return;
+      if (!isLastCaption) {
+        setActiveCaptionIndex((i) => i + 1);
+        return;
+      }
 
-    isNavigatingRef.current = true;
-    setCaptionsVisible(false);
+      if (isLastMeme) return;
 
-    setTimeout(() => {
-      setPrevMemeIndex(activeMemeIndex);
-      setActiveMemeIndex(activeMemeIndex + 1);
-      setActiveCaptionIndex(0);
-      setIsTransitioning(true);
-      setTimeout(() => setCaptionsVisible(true), 200);
-    }, 250);
+      setCaptionsVisible(false);
+      setTimeout(() => {
+        setPrevMemeIndex(activeMemeIndex);
+        setActiveMemeIndex((i) => i + 1);
+        setActiveCaptionIndex(0);
+        setIsTransitioning(true);
+        setTimeout(() => setCaptionsVisible(true), 200);
+      }, 250);
+      setTimeout(() => {
+        setPrevMemeIndex(null);
+        setIsTransitioning(false);
+      }, 900);
+    },
+    [activeMeme, currentCaption, userId, isLastCaption, isLastMeme, activeMemeIndex]
+  );
 
-    setTimeout(() => {
-      setPrevMemeIndex(null);
-      setIsTransitioning(false);
-      isNavigatingRef.current = false;
-    }, 900);
-  }, [activeMemeIndex, activeCaptionIndex, isLastCaption, isLastMeme]);
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-xl text-gray-500">Loading…</p>
+      </div>
+    );
+  }
+
+  if (memes.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <p className="text-xl text-gray-500">No memes found.</p>
+      </div>
+    );
+  }
 
   const captionOpacity = captionsVisible ? "opacity-100" : "opacity-0";
   const imageAnimation = isTransitioning ? "animate-slideIn" : "";
@@ -80,7 +133,7 @@ export default function Home() {
             {prevMemeIndex !== null && (
               <Image
                 key={`exit-${prevMemeIndex}`}
-                src={MEMES_DB[prevMemeIndex].imageUrl}
+                src={memes[prevMemeIndex].url}
                 alt="Meme"
                 fill
                 className="object-contain animate-slideOut"
@@ -89,7 +142,7 @@ export default function Home() {
             )}
             <Image
               key={`enter-${activeMemeIndex}`}
-              src={activeMeme.imageUrl}
+              src={activeMeme.url}
               alt="Meme"
               fill
               className={`object-contain ${imageAnimation}`}
@@ -103,7 +156,7 @@ export default function Home() {
           >
             <div className="max-w-[400px] w-full px-6 mb-8">
               <p className="text-3xl font-medium text-black leading-relaxed">
-                {currentCaption}
+                {currentCaption?.content}
               </p>
             </div>
 
@@ -126,7 +179,7 @@ export default function Home() {
                   <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
                 </svg>
               </button>
-              
+
               <button
                 onClick={() => handleVote("dislike")}
                 className="p-4 rounded-full hover:bg-gray-100 transition-colors group"
