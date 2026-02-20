@@ -79,10 +79,12 @@ export default function Home() {
 
       setUserId(user?.id ?? null);
 
-      const valid = (images ?? []).filter(
-        (img): img is MemeEntry =>
-          Array.isArray(img.captions) && img.captions.length > 0
-      );
+      const valid = (images ?? [])
+        .filter((img) => Array.isArray(img.captions) && img.captions.length > 0)
+        .map((img): MemeEntry => ({
+          ...img,
+          captions: [img.captions[Math.floor(Math.random() * img.captions.length)]],
+        }));
       setMemes(valid);
       setLoading(false);
     }
