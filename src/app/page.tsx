@@ -63,7 +63,7 @@ export default function Home() {
 
   const handleVote = useCallback(
     async (vote: "like" | "dislike") => {
-      if (!activeMeme || !currentCaption) return;
+      if (!activeMeme || !currentCaption || isTransitioning) return;
 
       if (userId) {
         const supabase = createClient();
@@ -94,7 +94,7 @@ export default function Home() {
         setIsTransitioning(false);
       }, 900);
     },
-    [activeMeme, currentCaption, userId, isLastCaption, isLastMeme, activeMemeIndex]
+    [activeMeme, currentCaption, userId, isLastCaption, isLastMeme, activeMemeIndex, isTransitioning]
   );
 
   if (loading) {
