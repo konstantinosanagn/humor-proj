@@ -1,11 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabase";
 import { createClient } from "@/lib/supabase/client";
 
 type CaptionRow = Record<string, unknown>;
+
+function isComplexValue(val: unknown): boolean {
+  if (Array.isArray(val)) return true;
+  if (typeof val === "object" && val !== null) return true;
+  if (typeof val === "string" && val.length > 80) return true;
+  return false;
+}
+
+function formatCellValue(val: unknown): string {
+  if (typeof val === "object" && val !== null) return JSON.stringify(val);
+  return String(val ?? "\u2014");
+}
 
 const CRACKD_TABLE_NAMES = [
   "profiles", "images", "captions",
@@ -29,11 +41,11 @@ export default function ListPage() {
   const [error, setError] = useState<string | null>(null);
   const [foundTables, setFoundTables] = useState<{ name: string; rowCount: number }[]>([]);
 
-  const handleSignOut = async () => {
+  const handleSignOut = useCallback(async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
     window.location.href = "/";
-  };
+  }, []);
 
   useEffect(() => {
     async function discoverTables() {
@@ -152,9 +164,8 @@ export default function ListPage() {
               <div className="space-y-2 overflow-hidden">
                 {columns.map((col) => {
                   const val = row[col];
-                  const display = typeof val === "object" && val !== null ? JSON.stringify(val) : String(val ?? "—");
-                  const isLong = Array.isArray(val) || (typeof val === "object" && val !== null) || (typeof val === "string" && val.length > 80);
-                  const cellClass = isLong ? "text-xs break-all" : "text-sm";
+                  const display = formatCellValue(val);
+                  const cellClass = isComplexValue(val) ? "text-xs break-all" : "text-sm";
                   return (
                     <div key={col} className="min-w-0 overflow-hidden">
                       <span className="text-xs font-medium uppercase text-gray-400">{col}</span>

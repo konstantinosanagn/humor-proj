@@ -3,6 +3,8 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --color-white: #ffffff;
+  --color-bg-wash: rgba(247, 247, 245, 0.35);
 }
 
 @theme inline {
@@ -54,4 +56,85 @@ body {
 
 .animate-slideOut {
   animation: slideOut 0.5s ease-out forwards;
+}
+
+/* Background crossfade animation */
+@keyframes bgFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+.animate-bgFadeOut {
+  animation: bgFadeOut 650ms ease forwards;
+}
+
+/* Featured background — blurred ambient backdrop */
+.featuredBg {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #F7F7F5;
+}
+
+.featuredBgImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(100% + 200px);
+  height: calc(100% + 200px);
+  object-fit: cover;
+  filter: blur(50px);
+}
+
+.featuredBgOverlay {
+  position: absolute;
+  inset: 0;
+  background: var(--color-bg-wash);
+  z-index: 1;
+}
+
+/* Glassmorphic pill */
+.glass-pill {
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+}
+
+.glass-pill:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.glass-pill:active {
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Smoke vanish text reveal */
+@keyframes smokeIn {
+  from {
+    opacity: 0;
+    filter: blur(0.12em);
+    transform: scale(1.8) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1) translateZ(0);
+  }
+}
+
+.smoke-char {
+  display: inline-block;
+  opacity: 0;
+  animation: smokeIn 0.5s ease-out forwards;
+  animation-delay: calc(var(--char-index) * 20ms);
+  will-change: opacity, filter, transform;
 }
