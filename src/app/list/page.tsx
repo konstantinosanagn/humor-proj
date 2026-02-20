@@ -50,10 +50,9 @@ export default function ListPage() {
   useEffect(() => {
     if (!selectedTable) return;
 
-    setLoading(true);
-    setError(null);
-
     async function fetchTable() {
+      setLoading(true);
+      setError(null);
       const sb = getSupabase();
       const { count, error: countErr } = await sb.from(selectedTable).select("*", { count: "exact", head: true });
       if (countErr) {
