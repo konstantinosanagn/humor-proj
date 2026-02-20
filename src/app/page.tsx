@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Inter } from "next/font/google";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -11,14 +11,47 @@ const inter = Inter({ subsets: ["latin"] });
 type Caption = { id: string; content: string };
 type MemeEntry = { id: string; url: string; captions: Caption[] };
 
-function Cell({
-  className = "",
-  children,
-}: {
+type CellProps = {
   className?: string;
   children?: React.ReactNode;
-}) {
+};
+
+function Cell({ className = "", children }: CellProps): React.ReactElement {
   return <div className={`border border-gray-200 ${className}`}>{children}</div>;
+}
+
+function HeartIcon(): React.ReactElement {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-10 h-10 text-red-500 group-hover:fill-red-500 transition-all"
+    >
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  );
+}
+
+function ThumbDownIcon(): React.ReactElement {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="w-10 h-10 text-gray-500 group-hover:fill-gray-400 transition-all"
+    >
+      <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17" />
+    </svg>
+  );
 }
 
 export default function Home() {
@@ -54,9 +87,7 @@ export default function Home() {
       setLoading(false);
     }
     load();
-  }, []);
 
-  useEffect(() => {
     const timeouts = timeoutsRef.current;
     return () => {
       timeouts.forEach(clearTimeout);
@@ -75,10 +106,13 @@ export default function Home() {
 
       if (userId) {
         const supabase = createClient();
+        const now = new Date().toISOString();
         const { error: voteError } = await supabase.from("caption_votes").insert({
           caption_id: currentCaption.id,
           profile_id: userId,
           vote_value: vote === "like" ? 1 : -1,
+          created_datetime_utc: now,
+          modified_datetime_utc: now,
         });
         if (voteError) console.error("Vote insert failed:", voteError.message);
       }
@@ -90,20 +124,26 @@ export default function Home() {
 
       if (isLastMeme) return;
 
+      // Orchestrate the crossfade: hide captions, swap meme image, then reveal captions
       setCaptionsVisible(false);
-      const t1 = setTimeout(() => {
+
+      const scheduleTimeout = (fn: () => void, ms: number) => {
+        const id = setTimeout(fn, ms);
+        timeoutsRef.current.push(id);
+      };
+
+      scheduleTimeout(() => {
         setPrevMemeIndex(activeMemeIndex);
         setActiveMemeIndex((i) => i + 1);
         setActiveCaptionIndex(0);
         setIsTransitioning(true);
-        const t3 = setTimeout(() => setCaptionsVisible(true), 200);
-        timeoutsRef.current.push(t3);
+        scheduleTimeout(() => setCaptionsVisible(true), 200);
       }, 250);
-      const t2 = setTimeout(() => {
+
+      scheduleTimeout(() => {
         setPrevMemeIndex(null);
         setIsTransitioning(false);
       }, 900);
-      timeoutsRef.current.push(t1, t2);
     },
     [activeMeme, currentCaption, userId, isLastCaption, isLastMeme, activeMemeIndex, isTransitioning]
   );
@@ -177,18 +217,7 @@ export default function Home() {
                 className="p-4 rounded-full hover:bg-red-50 transition-colors group"
                 aria-label="Like"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="w-10 h-10 text-red-500 group-hover:fill-red-500 transition-all"
-                >
-                  <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                </svg>
+                <HeartIcon />
               </button>
 
               <button
@@ -196,18 +225,7 @@ export default function Home() {
                 className="p-4 rounded-full hover:bg-gray-100 transition-colors group"
                 aria-label="Dislike"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="w-10 h-10 text-gray-500 group-hover:fill-gray-400 transition-all"
-                >
-                  <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17" />
-                </svg>
+                <ThumbDownIcon />
               </button>
             </div>
 
