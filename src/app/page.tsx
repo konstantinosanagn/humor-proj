@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Inter } from "next/font/google";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -30,6 +30,7 @@ export default function Home() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [activeCaptionIndex, setActiveCaptionIndex] = useState(0);
   const [captionsVisible, setCaptionsVisible] = useState(true);
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   useEffect(() => {
     async function load() {
@@ -55,6 +56,13 @@ export default function Home() {
     load();
   }, []);
 
+  useEffect(() => {
+    const timeouts = timeoutsRef.current;
+    return () => {
+      timeouts.forEach(clearTimeout);
+    };
+  }, []);
+
   const activeMeme = memes[activeMemeIndex];
   const captions = activeMeme?.captions ?? [];
   const currentCaption = captions[activeCaptionIndex];
@@ -67,11 +75,12 @@ export default function Home() {
 
       if (userId) {
         const supabase = createClient();
-        await supabase.from("caption_votes").insert({
+        const { error: voteError } = await supabase.from("caption_votes").insert({
           caption_id: currentCaption.id,
           profile_id: userId,
           vote_value: vote === "like" ? 1 : -1,
         });
+        if (voteError) console.error("Vote insert failed:", voteError.message);
       }
 
       if (!isLastCaption) {
@@ -82,17 +91,19 @@ export default function Home() {
       if (isLastMeme) return;
 
       setCaptionsVisible(false);
-      setTimeout(() => {
+      const t1 = setTimeout(() => {
         setPrevMemeIndex(activeMemeIndex);
         setActiveMemeIndex((i) => i + 1);
         setActiveCaptionIndex(0);
         setIsTransitioning(true);
-        setTimeout(() => setCaptionsVisible(true), 200);
+        const t3 = setTimeout(() => setCaptionsVisible(true), 200);
+        timeoutsRef.current.push(t3);
       }, 250);
-      setTimeout(() => {
+      const t2 = setTimeout(() => {
         setPrevMemeIndex(null);
         setIsTransitioning(false);
       }, 900);
+      timeoutsRef.current.push(t1, t2);
     },
     [activeMeme, currentCaption, userId, isLastCaption, isLastMeme, activeMemeIndex, isTransitioning]
   );
