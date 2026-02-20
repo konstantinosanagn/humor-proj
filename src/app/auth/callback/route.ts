@@ -15,5 +15,5 @@ export async function GET(request: Request) {
     if (exchangeError) return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.redirect(`${origin}/list`);
+  return NextResponse.redirect(`${origin}/`);
 }
