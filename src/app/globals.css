@@ -4,7 +4,7 @@
   --background: #EBEBEA;
   --foreground: #171717;
   --color-white: #ffffff;
-  --color-bg-wash: rgba(180, 180, 178, 0.12);
+  --color-bg-wash: rgba(0, 0, 0, 0.35);
 }
 
 @theme inline {
