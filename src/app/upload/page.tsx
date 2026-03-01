@@ -456,7 +456,7 @@ export default function UploadPage() {
                   <input
                     type="url"
                     value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
+                    onChange={(e) => { setImageUrl(e.target.value); setPreview(e.target.value.trim() || null); }}
                     placeholder="https://example.com/image.jpg"
                     className={`${pill} w-full rounded-full px-5 py-2.5 text-sm ${txt.body} outline-none text-center`}
                   />
