@@ -276,9 +276,18 @@ export default function Home() {
         <span className="text-sm font-medium text-white/80">Sign out</span>
       </button>
 
-      <div className="relative z-10 grid grid-cols-[5rem_2fr_3fr_5rem] grid-rows-[5rem_1fr_5rem] min-h-screen">
-        <Cell />
-        <Cell className="col-span-2 flex items-center px-4">
+      <div className="relative z-10 grid grid-cols-1 grid-rows-[auto_auto_auto] min-h-screen lg:grid-cols-[5rem_2fr_3fr_5rem] lg:grid-rows-[5rem_1fr_5rem]">
+        {/* Empty cells — desktop only, for grid spacing */}
+        <Cell className="hidden lg:block lg:col-start-1 lg:row-start-1" />
+        <Cell className="hidden lg:block lg:col-start-4 lg:row-start-1" />
+        <Cell className="hidden lg:block lg:col-start-1 lg:row-start-2" />
+        <Cell className="hidden lg:block lg:col-start-4 lg:row-start-2" />
+        <Cell className="hidden lg:block lg:col-start-1 lg:row-start-3" />
+        <Cell className="hidden lg:block lg:col-start-2 lg:col-span-2 lg:row-start-3" />
+        <Cell className="hidden lg:block lg:col-start-4 lg:row-start-3" />
+
+        {/* 1. Nav — top on mobile/tablet; row 1 col 2–3 on desktop */}
+        <Cell className="flex items-center justify-center gap-3 px-4 py-4 lg:col-start-2 lg:col-span-2 lg:row-start-1 lg:justify-start">
           <Link
             href="/list"
             className="glass-pill inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-white/80 no-underline"
@@ -288,12 +297,21 @@ export default function Home() {
             </svg>
             Explore Supabase
           </Link>
+          <Link
+            href="/upload"
+            className="glass-pill inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-white/80 no-underline"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path d="M9.25 13.25a.75.75 0 001.5 0V4.636l2.955 3.129a.75.75 0 001.09-1.03l-4.25-4.5a.75.75 0 00-1.09 0l-4.25 4.5a.75.75 0 101.09 1.03L9.25 4.636v8.614z" />
+              <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
+            </svg>
+            Upload
+          </Link>
         </Cell>
-        <Cell />
 
-        <Cell />
-        <Cell className="flex items-center justify-center overflow-hidden p-4">
-          <div className="relative w-[450px] h-[450px] flex items-center justify-center overflow-hidden">
+        {/* 2. Image — second on mobile/tablet; row 2 col 2 on desktop */}
+        <Cell className="flex items-center justify-center overflow-hidden p-4 lg:col-start-2 lg:row-start-2">
+          <div className="relative w-full max-w-[min(100vw,450px)] aspect-square flex items-center justify-center overflow-hidden lg:w-[450px] lg:h-[450px] lg:max-w-none lg:aspect-auto">
             {prevMemeIndex !== null && (
               <Image
                 key={`exit-${prevMemeIndex}`}
@@ -314,12 +332,14 @@ export default function Home() {
             />
           </div>
         </Cell>
-        <Cell className={`overflow-hidden p-0 flex flex-col ${lexendMega.className}`}>
+
+        {/* 3. Caption + like/dislike + counter — third on mobile/tablet; row 2 col 3 on desktop */}
+        <Cell className={`overflow-hidden p-0 flex flex-col items-center justify-center px-4 pb-8 pt-2 lg:col-start-3 lg:row-start-2 lg:justify-center lg:pb-0 lg:pt-0 ${lexendMega.className}`}>
           <div
-            className={`flex-1 flex flex-col items-center justify-center text-center px-4 transition-opacity duration-200 ${captionOpacity}`}
+            className={`flex flex-col items-center justify-center text-center transition-opacity duration-200 ${captionOpacity}`}
           >
-            <div className="max-w-[600px] w-full px-6 mb-8">
-              <p key={currentCaption?.id} className="text-5xl font-semibold text-black leading-snug">
+            <div className="max-w-[600px] w-full px-4 mb-6 lg:mb-8">
+              <p key={currentCaption?.id} className="text-3xl font-semibold text-black leading-snug sm:text-4xl lg:text-5xl">
                 <SmokeText text={currentCaption?.content ?? ""} />
               </p>
             </div>
@@ -347,11 +367,6 @@ export default function Home() {
             </div>
           </div>
         </Cell>
-        <Cell />
-
-        <Cell />
-        <Cell className="col-span-2" />
-        <Cell />
       </div>
     </div>
   );
