@@ -475,6 +475,24 @@ export default function UploadPage() {
             {/* Done — show generated captions with smoke text */}
             {status === "done" && captions.length > 0 && (
               <div className="flex flex-col items-center gap-6 w-full px-4">
+                {/* Success badge */}
+                <div className={`${pill} inline-flex items-center gap-2 rounded-full px-5 py-2`}>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                    className={`w-4 h-4 ${hasImage ? "text-emerald-300" : "text-emerald-500"}`}
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                  <span className={`text-sm font-semibold ${hasImage ? "text-emerald-200" : "text-emerald-600"}`}>
+                    Uploaded
+                  </span>
+                </div>
                 <div className="space-y-4 w-full">
                   {captions.map((caption, i) => (
                     <div
