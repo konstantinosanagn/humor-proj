@@ -108,12 +108,30 @@ export default function ListPage() {
   return (
     <div className="min-h-screen bg-white p-8">
       <div className="flex items-center justify-between mb-4">
-        <Link href="/" className="text-gray-500 hover:text-gray-700 font-medium">
-          ← Back to meme viewer
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/"
+            className="glass-pill-dark inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-gray-600 no-underline"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path fillRule="evenodd" d="M17 10a.75.75 0 01-.75.75H5.612l4.158 3.96a.75.75 0 11-1.04 1.08l-5.5-5.25a.75.75 0 010-1.08l5.5-5.25a.75.75 0 111.04 1.08L5.612 9.25H16.25A.75.75 0 0117 10z" clipRule="evenodd" />
+            </svg>
+            Back to voting
+          </Link>
+          <Link
+            href="/upload"
+            className="glass-pill-dark inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-gray-600 no-underline"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4">
+              <path d="M9.25 13.25a.75.75 0 001.5 0V4.636l2.955 3.129a.75.75 0 001.09-1.03l-4.25-4.5a.75.75 0 00-1.09 0l-4.25 4.5a.75.75 0 101.09 1.03L9.25 4.636v8.614z" />
+              <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
+            </svg>
+            Upload
+          </Link>
+        </div>
         <button
           onClick={handleSignOut}
-          className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg hover:border-gray-400 transition-colors cursor-pointer"
+          className="glass-pill-dark flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-gray-600 cursor-pointer"
         >
           Sign out
         </button>
