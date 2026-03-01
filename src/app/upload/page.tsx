@@ -79,6 +79,8 @@ export default function UploadPage() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [imageUrl, setImageUrl] = useState("");
+  const [inputMode, setInputMode] = useState<"file" | "url">("file");
   const [preview, setPreview] = useState<string | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [captions, setCaptions] = useState<CaptionRecord[]>([]);
@@ -217,6 +219,58 @@ export default function UploadPage() {
     }
   }, [file, accessToken]);
 
+  const handleUrlSubmit = useCallback(async () => {
+    if (!imageUrl.trim() || !accessToken) return;
+
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    };
+
+    try {
+      setStatus("registering");
+      setErrorMessage(null);
+      setPreview(imageUrl.trim());
+
+      const registerRes = await fetch(
+        `${API_BASE}/pipeline/upload-image-from-url`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ imageUrl: imageUrl.trim(), isCommonUse: false }),
+        }
+      );
+      if (!registerRes.ok)
+        throw new Error(
+          `Register failed: ${registerRes.status} ${await registerRes.text()}`
+        );
+      const { imageId } = await registerRes.json();
+
+      setStatus("generating");
+      const captionRes = await fetch(
+        `${API_BASE}/pipeline/generate-captions`,
+        {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ imageId }),
+        }
+      );
+      if (!captionRes.ok)
+        throw new Error(
+          `Caption generation failed: ${captionRes.status} ${await captionRes.text()}`
+        );
+      const captionData = await captionRes.json();
+
+      setCaptions(Array.isArray(captionData) ? captionData : []);
+      setStatus("done");
+    } catch (err) {
+      setStatus("error");
+      setErrorMessage(
+        err instanceof Error ? err.message : "Something went wrong"
+      );
+    }
+  }, [imageUrl, accessToken]);
+
   const handleSignOut = useCallback(async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
@@ -224,13 +278,15 @@ export default function UploadPage() {
   }, [router]);
 
   const handleReset = useCallback(() => {
-    if (preview) URL.revokeObjectURL(preview);
+    if (preview && file) URL.revokeObjectURL(preview);
     setFile(null);
+    setImageUrl("");
+    setInputMode("file");
     setPreview(null);
     setCaptions([]);
     setStatus("idle");
     setErrorMessage(null);
-  }, [preview]);
+  }, [preview, file]);
 
   if (!accessToken) {
     return (
@@ -347,7 +403,7 @@ export default function UploadPage() {
                 alt="Selected image preview"
                 className="object-contain w-full h-full rounded-2xl"
               />
-            ) : (
+            ) : inputMode === "file" ? (
               <button
                 onClick={() => fileInputRef.current?.click()}
                 className={`${pill} w-full h-full rounded-2xl flex flex-col items-center justify-center gap-4 cursor-pointer border-2 border-dashed ${txt.zoneBorder} transition-all`}
@@ -362,6 +418,18 @@ export default function UploadPage() {
                   JPEG, PNG, WebP, GIF, HEIC
                 </p>
               </button>
+            ) : (
+              <div
+                className={`${pill} w-full h-full rounded-2xl flex flex-col items-center justify-center gap-4 border-2 border-dashed ${txt.zoneBorder}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={`w-10 h-10 ${txt.uploadIcon}`}>
+                  <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                  <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+                </svg>
+                <p className={`${txt.muted} text-sm font-medium`}>
+                  Paste an image URL
+                </p>
+              </div>
             )}
           </div>
         </Cell>
@@ -380,15 +448,50 @@ export default function UploadPage() {
               className="hidden"
             />
 
-            {/* Idle — no file selected yet */}
-            {!file && status === "idle" && (
-              <div className="flex flex-col items-center gap-3">
+            {/* Idle — no file or URL yet */}
+            {!file && !imageUrl.trim() && status === "idle" && (
+              <div className="flex flex-col items-center gap-4 w-full px-4">
                 <h1 className={`text-3xl font-semibold ${txt.heading} leading-snug sm:text-4xl lg:text-5xl`}>
                   Upload an image
                 </h1>
-                <p className={`text-base ${txt.muted} mt-2`}>
-                  Select an image and we&apos;ll generate captions for it
+                <p className={`text-base ${txt.muted} mt-1`}>
+                  Select a file or paste an image link
                 </p>
+                {/* Mode toggle */}
+                <div className={`${pill} inline-flex rounded-full p-1 gap-0`}>
+                  <button
+                    onClick={() => setInputMode("file")}
+                    className={`rounded-full px-5 py-1.5 text-xs font-semibold cursor-pointer transition-all ${
+                      inputMode === "file"
+                        ? hasImage ? "bg-white/20 text-white/90" : "bg-black/10 text-gray-900"
+                        : `${txt.muted}`
+                    }`}
+                  >
+                    File
+                  </button>
+                  <button
+                    onClick={() => setInputMode("url")}
+                    className={`rounded-full px-5 py-1.5 text-xs font-semibold cursor-pointer transition-all ${
+                      inputMode === "url"
+                        ? hasImage ? "bg-white/20 text-white/90" : "bg-black/10 text-gray-900"
+                        : `${txt.muted}`
+                    }`}
+                  >
+                    URL
+                  </button>
+                </div>
+                {/* URL input (shown when URL mode active) */}
+                {inputMode === "url" && (
+                  <div className="flex gap-2 w-full max-w-md mt-2">
+                    <input
+                      type="url"
+                      value={imageUrl}
+                      onChange={(e) => setImageUrl(e.target.value)}
+                      placeholder="https://example.com/image.jpg"
+                      className={`${pill} flex-1 rounded-full px-5 py-2.5 text-sm ${txt.body} placeholder:${txt.faint} outline-none`}
+                    />
+                  </div>
+                )}
               </div>
             )}
 
@@ -410,6 +513,29 @@ export default function UploadPage() {
                     className={`${pill} rounded-full px-6 py-3 text-sm font-medium ${txt.muted} cursor-pointer`}
                   >
                     Change
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Idle — URL entered, ready to submit */}
+            {!file && imageUrl.trim() && status === "idle" && (
+              <div className="flex flex-col items-center gap-5 w-full px-4">
+                <p className={`text-sm font-medium ${txt.body} truncate max-w-full`}>
+                  {imageUrl.trim()}
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleUrlSubmit}
+                    className={`${pill} rounded-full px-8 py-3 text-sm font-semibold ${txt.heading} cursor-pointer`}
+                  >
+                    Generate Captions
+                  </button>
+                  <button
+                    onClick={() => { setImageUrl(""); setPreview(null); }}
+                    className={`${pill} rounded-full px-6 py-3 text-sm font-medium ${txt.muted} cursor-pointer`}
+                  >
+                    Clear
                   </button>
                 </div>
               </div>
