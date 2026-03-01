@@ -475,13 +475,13 @@ export default function UploadPage() {
             {/* Done — show generated captions with smoke text */}
             {status === "done" && captions.length > 0 && (
               <div className="flex flex-col items-center gap-6 w-full px-4">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+                <div className="space-y-4 w-full">
                   {captions.map((caption, i) => (
                     <div
                       key={caption.id ?? i}
                       className={`${pill} rounded-2xl p-5`}
                     >
-                      <p className={`text-lg font-semibold ${txt.caption} leading-relaxed sm:text-xl lg:text-2xl`}>
+                      <p className={`text-sm font-semibold ${txt.caption} leading-relaxed sm:text-base lg:text-lg`}>
                         <SmokeText text={caption.content ?? JSON.stringify(caption)} />
                       </p>
                     </div>
