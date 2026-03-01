@@ -207,7 +207,7 @@ export default function UploadPage() {
   if (!accessToken) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="featuredBg">
+        <div className="featuredBg upload-gradient-bg">
           <div className="featuredBgOverlay" />
         </div>
         <p className="relative z-10 text-xl text-white/60">Loading…</p>
@@ -232,8 +232,8 @@ export default function UploadPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Blurred ambient background — mirrors homepage */}
-      <div className="featuredBg">
+      {/* Blurred ambient background — gradient default, crossfades to image */}
+      <div className={`featuredBg ${!preview ? "upload-gradient-bg" : ""}`}>
         {preview && (
           <img
             src={preview}
@@ -356,10 +356,10 @@ export default function UploadPage() {
             {/* Idle — no file selected yet */}
             {!file && status === "idle" && (
               <div className="flex flex-col items-center gap-3">
-                <h1 className="text-3xl font-semibold text-black/80 leading-snug sm:text-4xl lg:text-5xl">
+                <h1 className="text-3xl font-semibold text-white/90 leading-snug sm:text-4xl lg:text-5xl drop-shadow-sm">
                   Upload an image
                 </h1>
-                <p className="text-base text-black/40 mt-2">
+                <p className="text-base text-white/50 mt-2">
                   Select an image and we&apos;ll generate captions for it
                 </p>
               </div>
@@ -368,7 +368,7 @@ export default function UploadPage() {
             {/* Idle — file selected, ready to upload */}
             {file && status === "idle" && (
               <div className="flex flex-col items-center gap-5 w-full px-4">
-                <p className="text-lg font-medium text-black/70 truncate max-w-full">
+                <p className="text-lg font-medium text-white/80 truncate max-w-full">
                   {file.name}
                 </p>
                 <div className="flex gap-3">
@@ -395,7 +395,7 @@ export default function UploadPage() {
                   <div className="absolute inset-0 border-2 border-white/20 rounded-full" />
                   <div className="absolute inset-0 border-2 border-t-white/80 rounded-full animate-spin" />
                 </div>
-                <p className="text-xl font-semibold text-black/70">
+                <p className="text-xl font-semibold text-white/80">
                   {statusLabels[status]}
                 </p>
                 {/* Step dots */}
@@ -405,13 +405,13 @@ export default function UploadPage() {
                       <div
                         className={`w-2 h-2 rounded-full transition-all duration-300 ${
                           i <= stepIndex
-                            ? "bg-black/60 scale-110"
-                            : "bg-black/15"
+                            ? "bg-white/70 scale-110"
+                            : "bg-white/20"
                         }`}
                       />
                       <span
                         className={`text-xs transition-colors duration-300 ${
-                          i <= stepIndex ? "text-black/60" : "text-black/25"
+                          i <= stepIndex ? "text-white/70" : "text-white/30"
                         }`}
                       >
                         {label}
@@ -454,7 +454,7 @@ export default function UploadPage() {
                       key={caption.id ?? i}
                       className="glass-pill rounded-2xl p-5"
                     >
-                      <p className="text-lg font-semibold text-black/80 leading-relaxed sm:text-xl lg:text-2xl">
+                      <p className="text-lg font-semibold text-white/90 leading-relaxed sm:text-xl lg:text-2xl">
                         <SmokeText text={caption.content ?? JSON.stringify(caption)} />
                       </p>
                     </div>
@@ -471,7 +471,7 @@ export default function UploadPage() {
 
             {status === "done" && captions.length === 0 && (
               <div className="flex flex-col items-center gap-4">
-                <p className="text-xl text-black/50">
+                <p className="text-xl text-white/60">
                   No captions were generated.
                 </p>
                 <button
