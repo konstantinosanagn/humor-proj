@@ -394,8 +394,34 @@ export default function UploadPage() {
           </Link>
         </Cell>
 
-        {/* Left column — image preview / upload zone */}
-        <Cell className="flex items-center justify-center overflow-hidden p-4 lg:col-start-2 lg:row-start-2">
+        {/* Left column — toggle + image preview / upload zone / URL input */}
+        <Cell className="flex flex-col items-center justify-center overflow-hidden p-4 gap-4 lg:col-start-2 lg:row-start-2">
+          {/* Mode toggle — only shown when idle and nothing selected */}
+          {!preview && status === "idle" && (
+            <div className={`${pill} inline-flex rounded-full p-1 gap-0`}>
+              <button
+                onClick={() => setInputMode("file")}
+                className={`rounded-full px-5 py-1.5 text-xs font-semibold cursor-pointer transition-all ${
+                  inputMode === "file"
+                    ? hasImage ? "bg-white/20 text-white/90" : "bg-black/10 text-gray-900"
+                    : `${txt.muted}`
+                }`}
+              >
+                File
+              </button>
+              <button
+                onClick={() => setInputMode("url")}
+                className={`rounded-full px-5 py-1.5 text-xs font-semibold cursor-pointer transition-all ${
+                  inputMode === "url"
+                    ? hasImage ? "bg-white/20 text-white/90" : "bg-black/10 text-gray-900"
+                    : `${txt.muted}`
+                }`}
+              >
+                URL
+              </button>
+            </div>
+          )}
+
           <div className="relative w-full max-w-[min(100vw,450px)] aspect-square flex items-center justify-center overflow-hidden lg:w-[450px] lg:h-[450px] lg:max-w-none lg:aspect-auto">
             {preview ? (
               <img
@@ -420,15 +446,24 @@ export default function UploadPage() {
               </button>
             ) : (
               <div
-                className={`${pill} w-full h-full rounded-2xl flex flex-col items-center justify-center gap-4 border-2 border-dashed ${txt.zoneBorder}`}
+                className={`${pill} w-full h-full rounded-2xl flex flex-col items-center justify-center gap-6 border-2 border-dashed ${txt.zoneBorder}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={`w-10 h-10 ${txt.uploadIcon}`}>
                   <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                   <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
                 </svg>
-                <p className={`${txt.muted} text-sm font-medium`}>
-                  Paste an image URL
-                </p>
+                <div className="flex flex-col items-center gap-3 w-full px-6">
+                  <input
+                    type="url"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                    className={`${pill} w-full rounded-full px-5 py-2.5 text-sm ${txt.body} outline-none text-center`}
+                  />
+                  <p className={`${txt.faint} text-xs`}>
+                    Paste an image URL
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -450,48 +485,13 @@ export default function UploadPage() {
 
             {/* Idle — no file or URL yet */}
             {!file && !imageUrl.trim() && status === "idle" && (
-              <div className="flex flex-col items-center gap-4 w-full px-4">
+              <div className="flex flex-col items-center gap-3">
                 <h1 className={`text-3xl font-semibold ${txt.heading} leading-snug sm:text-4xl lg:text-5xl`}>
                   Upload an image
                 </h1>
                 <p className={`text-base ${txt.muted} mt-1`}>
                   Select a file or paste an image link
                 </p>
-                {/* Mode toggle */}
-                <div className={`${pill} inline-flex rounded-full p-1 gap-0`}>
-                  <button
-                    onClick={() => setInputMode("file")}
-                    className={`rounded-full px-5 py-1.5 text-xs font-semibold cursor-pointer transition-all ${
-                      inputMode === "file"
-                        ? hasImage ? "bg-white/20 text-white/90" : "bg-black/10 text-gray-900"
-                        : `${txt.muted}`
-                    }`}
-                  >
-                    File
-                  </button>
-                  <button
-                    onClick={() => setInputMode("url")}
-                    className={`rounded-full px-5 py-1.5 text-xs font-semibold cursor-pointer transition-all ${
-                      inputMode === "url"
-                        ? hasImage ? "bg-white/20 text-white/90" : "bg-black/10 text-gray-900"
-                        : `${txt.muted}`
-                    }`}
-                  >
-                    URL
-                  </button>
-                </div>
-                {/* URL input (shown when URL mode active) */}
-                {inputMode === "url" && (
-                  <div className="flex gap-2 w-full max-w-md mt-2">
-                    <input
-                      type="url"
-                      value={imageUrl}
-                      onChange={(e) => setImageUrl(e.target.value)}
-                      placeholder="https://example.com/image.jpg"
-                      className={`${pill} flex-1 rounded-full px-5 py-2.5 text-sm ${txt.body} placeholder:${txt.faint} outline-none`}
-                    />
-                  </div>
-                )}
               </div>
             )}
 
