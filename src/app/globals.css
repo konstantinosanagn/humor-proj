@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #EBEBEA;
+  --background: #E0E0DE;
   --foreground: #171717;
   --color-white: #ffffff;
   --color-bg-wash: transparent;
@@ -73,7 +73,7 @@ body {
   position: fixed;
   inset: 0;
   overflow: hidden;
-  background: #F7F7F5;
+  background: #E0E0DE;
 }
 
 /* Dark-toned glassmorphic elements for light backgrounds */

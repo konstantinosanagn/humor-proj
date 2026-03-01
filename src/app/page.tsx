@@ -219,7 +219,7 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#E0E0DE]">
         <p className="text-xl text-gray-500">Loading…</p>
       </div>
     );
@@ -232,7 +232,7 @@ export default function Home() {
 
   if (memes.length === 0) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center bg-[#E0E0DE]">
         <p className="text-xl text-gray-500">No memes found.</p>
       </div>
     );
