@@ -84,6 +84,34 @@ export default function UploadPage() {
   const [captions, setCaptions] = useState<CaptionRecord[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Whether we have a colorful blurred backdrop (image selected) or plain light bg
+  const hasImage = !!preview;
+
+  // Dynamic color tokens based on backdrop
+  const pill = hasImage ? "glass-pill" : "glass-pill-dark";
+  const txt = {
+    heading: hasImage ? "text-white/90" : "text-gray-900",
+    body: hasImage ? "text-white/80" : "text-gray-700",
+    muted: hasImage ? "text-white/50" : "text-gray-400",
+    faint: hasImage ? "text-white/35" : "text-gray-300",
+    nav: hasImage ? "text-white/80" : "text-gray-600",
+    caption: hasImage ? "text-white/90" : "text-gray-900",
+    error: hasImage ? "text-red-400/90" : "text-red-600",
+    dotActive: hasImage ? "bg-white/70" : "bg-gray-700",
+    dotInactive: hasImage ? "bg-white/20" : "bg-gray-300",
+    stepActive: hasImage ? "text-white/70" : "text-gray-600",
+    stepInactive: hasImage ? "text-white/30" : "text-gray-300",
+    spinnerTrack: hasImage ? "border-white/20" : "border-gray-200",
+    spinnerHead: hasImage ? "border-t-white/80" : "border-t-gray-700",
+    avatarText: hasImage ? "text-white/90" : "text-gray-700",
+    avatarBg: hasImage ? "rgba(0, 0, 0, 0.2)" : "rgba(0, 0, 0, 0.08)",
+    uploadIcon: hasImage ? "text-white/50" : "text-gray-400",
+    zoneBorder: hasImage
+      ? "border-white/30 hover:border-white/50"
+      : "border-gray-300 hover:border-gray-400",
+    errorBorder: hasImage ? "border-red-300/30" : "border-red-200",
+  };
+
   useEffect(() => {
     async function checkAuth() {
       const supabase = createClient();
@@ -207,10 +235,10 @@ export default function UploadPage() {
   if (!accessToken) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="featuredBg upload-gradient-bg">
+        <div className="featuredBg">
           <div className="featuredBgOverlay" />
         </div>
-        <p className="relative z-10 text-xl text-white/60">Loading…</p>
+        <p className="relative z-10 text-xl text-gray-400">Loading…</p>
       </div>
     );
   }
@@ -232,8 +260,8 @@ export default function UploadPage() {
 
   return (
     <div className="relative min-h-screen overflow-hidden">
-      {/* Blurred ambient background — gradient default, crossfades to image */}
-      <div className={`featuredBg ${!preview ? "upload-gradient-bg" : ""}`}>
+      {/* Blurred ambient background */}
+      <div className="featuredBg">
         {preview && (
           <img
             src={preview}
@@ -245,18 +273,18 @@ export default function UploadPage() {
         <div className="featuredBgOverlay" />
       </div>
 
-      {/* Sign-out pill — same as homepage */}
+      {/* Sign-out pill */}
       <button
         onClick={handleSignOut}
-        className="glass-pill fixed top-5 right-5 z-50 flex items-center gap-2.5 rounded-full px-5 py-2.5 cursor-pointer"
+        className={`${pill} fixed top-5 right-5 z-50 flex items-center gap-2.5 rounded-full px-5 py-2.5 cursor-pointer`}
       >
         <span
-          className="flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold tracking-wide text-white/90"
-          style={{ background: "rgba(0, 0, 0, 0.2)" }}
+          className={`flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold tracking-wide ${txt.avatarText}`}
+          style={{ background: txt.avatarBg }}
         >
           {(userEmail?.[0] ?? "?").toUpperCase()}
         </span>
-        <span className="text-sm font-medium text-white/80">Sign out</span>
+        <span className={`text-sm font-medium ${txt.nav}`}>Sign out</span>
       </button>
 
       {/* Grid layout — same structure as homepage */}
@@ -274,7 +302,7 @@ export default function UploadPage() {
         <Cell className="flex items-center justify-center gap-3 px-4 py-4 lg:col-start-2 lg:col-span-2 lg:row-start-1 lg:justify-start">
           <Link
             href="/"
-            className="glass-pill inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-white/80 no-underline"
+            className={`${pill} inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium ${txt.nav} no-underline`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -292,7 +320,7 @@ export default function UploadPage() {
           </Link>
           <Link
             href="/list"
-            className="glass-pill inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium text-white/80 no-underline"
+            className={`${pill} inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium ${txt.nav} no-underline`}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -320,18 +348,17 @@ export default function UploadPage() {
                 className="object-contain w-full h-full rounded-2xl"
               />
             ) : (
-              /* Empty state — glassmorphic drop zone */
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="glass-pill w-full h-full rounded-2xl flex flex-col items-center justify-center gap-4 cursor-pointer border-2 border-dashed border-white/30 hover:border-white/50 transition-all"
+                className={`${pill} w-full h-full rounded-2xl flex flex-col items-center justify-center gap-4 cursor-pointer border-2 border-dashed ${txt.zoneBorder} transition-all`}
               >
-                <div className="text-white/50">
+                <div className={txt.uploadIcon}>
                   <UploadIcon />
                 </div>
-                <p className="text-white/60 text-sm font-medium">
+                <p className={`${txt.muted} text-sm font-medium`}>
                   Choose an image
                 </p>
-                <p className="text-white/35 text-xs">
+                <p className={`${txt.faint} text-xs`}>
                   JPEG, PNG, WebP, GIF, HEIC
                 </p>
               </button>
@@ -356,10 +383,10 @@ export default function UploadPage() {
             {/* Idle — no file selected yet */}
             {!file && status === "idle" && (
               <div className="flex flex-col items-center gap-3">
-                <h1 className="text-3xl font-semibold text-white/90 leading-snug sm:text-4xl lg:text-5xl drop-shadow-sm">
+                <h1 className={`text-3xl font-semibold ${txt.heading} leading-snug sm:text-4xl lg:text-5xl`}>
                   Upload an image
                 </h1>
-                <p className="text-base text-white/50 mt-2">
+                <p className={`text-base ${txt.muted} mt-2`}>
                   Select an image and we&apos;ll generate captions for it
                 </p>
               </div>
@@ -368,19 +395,19 @@ export default function UploadPage() {
             {/* Idle — file selected, ready to upload */}
             {file && status === "idle" && (
               <div className="flex flex-col items-center gap-5 w-full px-4">
-                <p className="text-lg font-medium text-white/80 truncate max-w-full">
+                <p className={`text-lg font-medium ${txt.body} truncate max-w-full`}>
                   {file.name}
                 </p>
                 <div className="flex gap-3">
                   <button
                     onClick={handleUpload}
-                    className="glass-pill rounded-full px-8 py-3 text-sm font-semibold text-white/90 cursor-pointer"
+                    className={`${pill} rounded-full px-8 py-3 text-sm font-semibold ${txt.heading} cursor-pointer`}
                   >
                     Upload & Generate Captions
                   </button>
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="glass-pill rounded-full px-6 py-3 text-sm font-medium text-white/60 cursor-pointer"
+                    className={`${pill} rounded-full px-6 py-3 text-sm font-medium ${txt.muted} cursor-pointer`}
                   >
                     Change
                   </button>
@@ -392,10 +419,10 @@ export default function UploadPage() {
             {isProcessing && (
               <div className="flex flex-col items-center gap-6">
                 <div className="relative w-8 h-8">
-                  <div className="absolute inset-0 border-2 border-white/20 rounded-full" />
-                  <div className="absolute inset-0 border-2 border-t-white/80 rounded-full animate-spin" />
+                  <div className={`absolute inset-0 border-2 ${txt.spinnerTrack} rounded-full`} />
+                  <div className={`absolute inset-0 border-2 ${txt.spinnerHead} rounded-full animate-spin`} />
                 </div>
-                <p className="text-xl font-semibold text-white/80">
+                <p className={`text-xl font-semibold ${txt.body}`}>
                   {statusLabels[status]}
                 </p>
                 {/* Step dots */}
@@ -405,13 +432,13 @@ export default function UploadPage() {
                       <div
                         className={`w-2 h-2 rounded-full transition-all duration-300 ${
                           i <= stepIndex
-                            ? "bg-white/70 scale-110"
-                            : "bg-white/20"
+                            ? `${txt.dotActive} scale-110`
+                            : txt.dotInactive
                         }`}
                       />
                       <span
                         className={`text-xs transition-colors duration-300 ${
-                          i <= stepIndex ? "text-white/70" : "text-white/30"
+                          i <= stepIndex ? txt.stepActive : txt.stepInactive
                         }`}
                       >
                         {label}
@@ -425,19 +452,19 @@ export default function UploadPage() {
             {/* Error state */}
             {status === "error" && (
               <div className="flex flex-col items-center gap-4 w-full px-4">
-                <div className="glass-pill rounded-2xl p-5 w-full border-red-300/30 border">
-                  <p className="text-sm text-red-400/90">{errorMessage}</p>
+                <div className={`${pill} rounded-2xl p-5 w-full ${txt.errorBorder} border`}>
+                  <p className={`text-sm ${txt.error}`}>{errorMessage}</p>
                 </div>
                 <div className="flex gap-3">
                   <button
                     onClick={handleUpload}
-                    className="glass-pill rounded-full px-8 py-3 text-sm font-semibold text-white/90 cursor-pointer"
+                    className={`${pill} rounded-full px-8 py-3 text-sm font-semibold ${txt.heading} cursor-pointer`}
                   >
                     Retry
                   </button>
                   <button
                     onClick={handleReset}
-                    className="glass-pill rounded-full px-6 py-3 text-sm font-medium text-white/60 cursor-pointer"
+                    className={`${pill} rounded-full px-6 py-3 text-sm font-medium ${txt.muted} cursor-pointer`}
                   >
                     Start over
                   </button>
@@ -452,9 +479,9 @@ export default function UploadPage() {
                   {captions.map((caption, i) => (
                     <div
                       key={caption.id ?? i}
-                      className="glass-pill rounded-2xl p-5"
+                      className={`${pill} rounded-2xl p-5`}
                     >
-                      <p className="text-lg font-semibold text-white/90 leading-relaxed sm:text-xl lg:text-2xl">
+                      <p className={`text-lg font-semibold ${txt.caption} leading-relaxed sm:text-xl lg:text-2xl`}>
                         <SmokeText text={caption.content ?? JSON.stringify(caption)} />
                       </p>
                     </div>
@@ -462,7 +489,7 @@ export default function UploadPage() {
                 </div>
                 <button
                   onClick={handleReset}
-                  className="glass-pill rounded-full px-8 py-3 text-sm font-semibold text-white/80 cursor-pointer"
+                  className={`${pill} rounded-full px-8 py-3 text-sm font-semibold ${txt.body} cursor-pointer`}
                 >
                   Upload another
                 </button>
@@ -471,12 +498,12 @@ export default function UploadPage() {
 
             {status === "done" && captions.length === 0 && (
               <div className="flex flex-col items-center gap-4">
-                <p className="text-xl text-white/60">
+                <p className={`text-xl ${txt.muted}`}>
                   No captions were generated.
                 </p>
                 <button
                   onClick={handleReset}
-                  className="glass-pill rounded-full px-8 py-3 text-sm font-semibold text-white/80 cursor-pointer"
+                  className={`${pill} rounded-full px-8 py-3 text-sm font-semibold ${txt.body} cursor-pointer`}
                 >
                   Try another image
                 </button>
